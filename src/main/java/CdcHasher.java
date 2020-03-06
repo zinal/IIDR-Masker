@@ -15,7 +15,7 @@ import javax.xml.bind.DatatypeConverter;
 public class CdcHasher implements DEUserExitIF {
 
     public static final String VERSION = 
-            "CdcHasher 1.0 2019-08-15";
+            "CdcHasher 1.1 2020-03-06";
 
     private static final Charset CS = Charset.forName("UTF-8");
 
