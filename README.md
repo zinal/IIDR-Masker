@@ -1,5 +1,7 @@
 # IIDR-Masker
-Demonstrate basic masking/hashing and type conversion capabilities for IBM Change Data Capture
+Demonstrate basic masking/hashing and type conversion capabilities for IBM Change Data Capture.
+
+Precompiled classes are available in the `bin` directory.
 
 To build with Maven, first take ts.jar from your CDC agent installation
 and add it as a local Maven artifact as the following:
