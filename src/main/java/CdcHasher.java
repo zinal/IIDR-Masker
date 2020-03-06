@@ -46,7 +46,15 @@ public class CdcHasher implements DEUserExitIF {
         }
         String algo = (String) args[0];
         // Value to hash
-        String val = args[1].toString();
+        byte[] value;
+        final Object src = args[1];
+        if (src==null) {
+            value = new byte[0];
+        } else if (src instanceof byte[]) {
+            value = (byte[]) src;
+        } else {
+            value = src.toString().getBytes(CS);
+        }
         // Salting key, combined from additional arguments
         String key = null;
         if (args.length > 2) {
@@ -69,7 +77,7 @@ public class CdcHasher implements DEUserExitIF {
             final MessageDigest md = MessageDigest.getInstance(algo);
             if (key!=null)
                 md.update(key.getBytes(CS));
-            final byte[] hashValue = md.digest(val.getBytes(CS));
+            final byte[] hashValue = md.digest(value);
             /* 
             // HEX encoding
             final StringBuilder sb = new StringBuilder();
