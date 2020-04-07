@@ -14,7 +14,7 @@ public class GroovyChecker {
         try {
             CdcGroovy cg = new CdcGroovy();
             for ( int i=0; i<30; ++i) {
-                Object v = cg.invoke(new Object[] { "demo1", "arg1", 15 });
+                Object v = cg.invoke(new Object[] { "demo1", "secretColumn" });
                 System.out.println("Response: " + v);
                 Thread.sleep(1000L);
             }

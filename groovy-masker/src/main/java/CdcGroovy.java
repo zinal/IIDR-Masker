@@ -9,9 +9,12 @@ import java.util.Map;
  * Groovy dynamic scripting for IBM CDC.
  * This code is provided "as is", without warranty of any kind.
  * 
- * Put the CdcGroovy.class into {cdc-install-dir}/lib
+ * Put the CdcGroovy.class into {cdc-install-dir}/lib.
+ * Copy groovy-2.5.8.jar to the same directory.
+ * Create file system.cp in instance/INAME/conf directory, with:
+ *    lib/groovy-2.5.8.jar
  * 
- * javac CdcGroovy.java -classpath ts.jar
+ * javac CdcGroovy.java -classpath ts.jar:groovy-2.5.8.jar
  * 
  * %USERFUNC("JAVA","CdcGroovy","script-name", COLUMN)
  */
@@ -20,11 +23,17 @@ public class CdcGroovy implements DEUserExitIF {
     public static final String VERSION = 
             "CdcGroovy 1.0 2020-04-07";
 
+    private final String instanceId = Integer.toHexString(
+            System.identityHashCode(this));
     private final File scriptHome = 
             new File(System.getProperty("user.home"), "cdcgroovy");
     // Ugly data structure to avoid the need to have multiple class files
     private final Map<String, Object[]> scripts = new HashMap<>();
     private GroovyShell groovyShell = null;
+    
+    public CdcGroovy() {
+        System.out.println(VERSION + " @ " + instanceId);
+    }
 
     /**
      * Calculates the hash
@@ -101,6 +110,8 @@ public class CdcGroovy implements DEUserExitIF {
             groovyShell = new GroovyShell();
         long stamp = f.lastModified();
         Script script = groovyShell.parse(f);
+        System.out.println(" ** " + instanceId +
+                " loaded " + f.getAbsolutePath());
         return new Object[] { script, stamp, System.currentTimeMillis() };
     }
     
