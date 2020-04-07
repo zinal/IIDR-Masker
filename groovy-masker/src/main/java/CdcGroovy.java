@@ -1,10 +1,13 @@
 import com.datamirror.ts.derivedexpressionmanager.*;
-import java.security.MessageDigest;
-import java.nio.charset.Charset;
-import javax.xml.bind.DatatypeConverter;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Hash computation for CDC.
+ * Groovy dynamic scripting for IBM CDC.
+ * This code is provided "as is", without warranty of any kind.
  * 
  * Put the CdcGroovy.class into {cdc-install-dir}/lib
  * 
@@ -15,9 +18,11 @@ import javax.xml.bind.DatatypeConverter;
 public class CdcGroovy implements DEUserExitIF {
 
     public static final String VERSION = 
-            "CdcHasher 1.1 2020-03-06";
+            "CdcGroovy 1.0 2020-04-07";
 
-    private static final Charset CS = Charset.forName("UTF-8");
+    private final Map<String, Info> scripts = new HashMap<>();
+    private final String userHome = System.getProperty("user.home");
+    private GroovyShell groovyShell = null;
 
     /**
      * Calculates the hash
@@ -31,66 +36,99 @@ public class CdcGroovy implements DEUserExitIF {
     public Object invoke(Object[] args) 
             throws UserExitInvalidArgumentException, UserExitInvokeException {
         // 2 Arguments expected - algorithm type and value to hash
-        if (args.length < 2) {
+        if (args.length < 1) {
             throw new UserExitInvalidArgumentException(getClass().getName() 
                     + ": insufficient number of arguments, "
-                    + "expects a hash type and a String value to hash");
+                    + "expects a script name");
         }
-        // Handle null input values
-        if ( args[1] == null )
-            return null;
         // Algorithm type
         if (!(args[0] instanceof String)) {
             throw new UserExitInvalidArgumentException(getClass().getName() 
-                    + ": The algorithm type must be String");
+                    + ": The script name must be String");
         }
-        String algo = (String) args[0];
-        // Value to hash
-        byte[] value;
-        final Object src = args[1];
-        if (src==null) {
-            value = new byte[0];
-        } else if (src instanceof byte[]) {
-            value = (byte[]) src;
-        } else {
-            value = src.toString().getBytes(CS);
-        }
-        // Salting key, combined from additional arguments
-        String key = null;
-        if (args.length > 2) {
-            if (args.length==3) {
-                if (args[2]!=null)
-                    key = args[2].toString();
-            } else {
-                final StringBuilder tmp = new StringBuilder();
-                for (int i=2; i<args.length; ++i) {
-                    if (args[i]!=null)
-                        tmp.append(args[i].toString());
-                }
-                key = tmp.toString();
-            }
-            if (key!=null && key.length()==0)
-                key = null;
-        }
-        
+        String scriptName = (String) args[0];
         try {
-            final MessageDigest md = MessageDigest.getInstance(algo);
-            if (key!=null)
-                md.update(key.getBytes(CS));
-            final byte[] hashValue = md.digest(value);
-            /* 
-            // HEX encoding
-            final StringBuilder sb = new StringBuilder();
-            for (byte b : hashValue) {
-                sb.append(String.format("%02x", b & 0xff));
-            }
-            return sb.toString();
-            */
-            // More compact base64 encoding
-            return DatatypeConverter.printBase64Binary(hashValue);
+            Script script = locateScript(scriptName);
+            if (script==null)
+                throw new Exception("Script not found: " + scriptName);
+            return script.invokeMethod("invoke", args);
         } catch(Exception ex) {
-            throw new UserExitInvokeException(getClass().getName()
-                + ": call failed - " + ex.toString());
+            ex.printStackTrace(System.err);
+            throw new UserExitInvokeException(buildMessage(ex));
+        }
+    }
+    
+    private Script locateScript(String name) throws Exception {
+        synchronized(scripts) {
+            File f = null;
+            Info info = scripts.get(name);
+            if (info != null) {
+                final long curTv = System.currentTimeMillis();
+                if ( curTv - info.tv < 5000L )
+                    return info.script;
+                f = locateScriptFile(name);
+                if (f.canRead()) {
+                    long stamp = f.lastModified();
+                    if (stamp == info.stamp)
+                        return info.script;
+                } else {
+                    // TODO: print warning about missing file
+                    return info.script;
+                }
+            }
+            if (f==null)
+                f = locateScriptFile(name);
+            if (f.canRead()) {
+                info = loadInfo(f);
+                scripts.put(name, info);
+                return info.script;
+            } else {
+                return null;
+            }
+        }
+    }
+    
+    private File locateScriptFile(String name) {
+        return new File(new File(userHome, "cdcgroovy"), name + ".groovy");
+    }
+    
+    private Info loadInfo(File f) throws Exception {
+        if (groovyShell == null)
+            groovyShell = new GroovyShell();
+        long stamp = f.lastModified();
+        Script script = groovyShell.parse(f);
+        return new Info(script, stamp);
+    }
+
+    private String buildMessage(Throwable ex) {
+        final StringBuilder sb = new StringBuilder();
+        while (ex != null) {
+            sb.append(ex.getClass().getName());
+            if (ex.getStackTrace()!=null && ex.getStackTrace().length > 0) {
+                sb.append(" at ");
+                StackTraceElement ste = ex.getStackTrace()[0];
+                sb.append(ste.getFileName()).append(":")
+                        .append(ste.getLineNumber());
+                sb.append(", method ").append(ste.getClassName())
+                        .append("/").append(ste.getMethodName());
+            }
+            sb.append(" -> ").append(ex.getMessage());
+            if (ex.getCause()!=null)
+                sb.append(" *** | ");
+            ex = ex.getCause();
+        }
+        return sb.toString();
+    }
+    
+    private static final class Info {
+        final Script script;
+        final long stamp;
+        long tv;
+        
+        Info(Script script, long stamp) {
+            this.script = script;
+            this.stamp = stamp;
+            this.tv = System.currentTimeMillis();
         }
     }
 }
