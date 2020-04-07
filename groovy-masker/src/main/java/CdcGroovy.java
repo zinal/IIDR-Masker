@@ -20,8 +20,10 @@ public class CdcGroovy implements DEUserExitIF {
     public static final String VERSION = 
             "CdcGroovy 1.0 2020-04-07";
 
-    private final Map<String, Info> scripts = new HashMap<>();
-    private final String userHome = System.getProperty("user.home");
+    private final File scriptHome = 
+            new File(System.getProperty("user.home"), "cdcgroovy");
+    // Ugly data structure to avoid the need to have multiple class files
+    private final Map<String, Object[]> scripts = new HashMap<>();
     private GroovyShell groovyShell = null;
 
     /**
@@ -61,19 +63,21 @@ public class CdcGroovy implements DEUserExitIF {
     private Script locateScript(String name) throws Exception {
         synchronized(scripts) {
             File f = null;
-            Info info = scripts.get(name);
+            Object[] info = scripts.get(name);
             if (info != null) {
                 final long curTv = System.currentTimeMillis();
-                if ( curTv - info.tv < 5000L )
-                    return info.script;
+                if ( curTv - getInfoMark(info) < 2000L )
+                    return getInfoScript(info);
+                updateInfoMark(info, curTv);
                 f = locateScriptFile(name);
                 if (f.canRead()) {
                     long stamp = f.lastModified();
-                    if (stamp == info.stamp)
-                        return info.script;
+                    if (stamp == getInfoStamp(info)) {
+                        return getInfoScript(info);
+                    }
                 } else {
                     // TODO: print warning about missing file
-                    return info.script;
+                    return getInfoScript(info);
                 }
             }
             if (f==null)
@@ -81,7 +85,7 @@ public class CdcGroovy implements DEUserExitIF {
             if (f.canRead()) {
                 info = loadInfo(f);
                 scripts.put(name, info);
-                return info.script;
+                return getInfoScript(info);
             } else {
                 return null;
             }
@@ -89,15 +93,31 @@ public class CdcGroovy implements DEUserExitIF {
     }
     
     private File locateScriptFile(String name) {
-        return new File(new File(userHome, "cdcgroovy"), name + ".groovy");
+        return new File(scriptHome, name + ".groovy");
     }
     
-    private Info loadInfo(File f) throws Exception {
+    private Object[] loadInfo(File f) throws Exception {
         if (groovyShell == null)
             groovyShell = new GroovyShell();
         long stamp = f.lastModified();
         Script script = groovyShell.parse(f);
-        return new Info(script, stamp);
+        return new Object[] { script, stamp, System.currentTimeMillis() };
+    }
+    
+    private static Script getInfoScript(Object[] info) {
+        return (Script) info[0];
+    }
+    
+    private static long getInfoStamp(Object[] info) {
+        return (Long) info[1];
+    }
+    
+    private static long getInfoMark(Object[] info) {
+        return (Long) info[2];
+    }
+
+    private static void updateInfoMark(Object[] info, long mark) {
+        info[2] = mark;
     }
 
     private String buildMessage(Throwable ex) {
@@ -119,16 +139,5 @@ public class CdcGroovy implements DEUserExitIF {
         }
         return sb.toString();
     }
-    
-    private static final class Info {
-        final Script script;
-        final long stamp;
-        long tv;
-        
-        Info(Script script, long stamp) {
-            this.script = script;
-            this.stamp = stamp;
-            this.tv = System.currentTimeMillis();
-        }
-    }
+
 }
