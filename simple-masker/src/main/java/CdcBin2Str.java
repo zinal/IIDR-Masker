@@ -3,7 +3,8 @@ import java.nio.charset.Charset;
 import javax.xml.bind.DatatypeConverter;
 
 /**
- * Convert binary values to strings for CDC.
+ * Convert binary values to strings for IBM CDC.
+ * This code is provided "as is", without warranty of any kind.
  * 
  * Put the CdcBin2Str.class into {cdc-install-dir}/lib
  * 

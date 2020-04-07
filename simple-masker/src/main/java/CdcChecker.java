@@ -1,5 +1,6 @@
 /**
- *
+ * Hash checker mini-test.
+ * This code is provided "as is", without warranty of any kind.
  * @author zinal
  */
 public class CdcChecker {

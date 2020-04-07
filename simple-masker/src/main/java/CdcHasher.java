@@ -4,7 +4,8 @@ import java.nio.charset.Charset;
 import javax.xml.bind.DatatypeConverter;
 
 /**
- * Hash computation for CDC.
+ * Hash computation for IBM CDC.
+ * This code is provided "as is", without warranty of any kind.
  * 
  * Put the CdcHasher.class into {cdc-install-dir}/lib
  * 
