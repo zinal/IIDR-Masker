@@ -6,13 +6,13 @@ import javax.xml.bind.DatatypeConverter;
 /**
  * Hash computation for CDC.
  * 
- * Put the CdcHasher.class into {cdc-install-dir}/lib
+ * Put the CdcGroovy.class into {cdc-install-dir}/lib
  * 
- * javac CdcHasher.java -classpath ts.jar
+ * javac CdcGroovy.java -classpath ts.jar
  * 
- * %USERFUNC("JAVA","CdcHasher", "SHA-1", PAN, "passw0rd")
+ * %USERFUNC("JAVA","CdcGroovy","script-name", COLUMN)
  */
-public class CdcHasher implements DEUserExitIF {
+public class CdcGroovy implements DEUserExitIF {
 
     public static final String VERSION = 
             "CdcHasher 1.1 2020-03-06";
