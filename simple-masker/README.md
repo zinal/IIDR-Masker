@@ -1,4 +1,4 @@
-# IIDR-Masker
+# IIDR-Masker (simple-masker)
 Demonstrate basic masking/hashing and type conversion capabilities for IBM Change Data Capture.
 
 Precompiled classes are available in the `bin` directory.
