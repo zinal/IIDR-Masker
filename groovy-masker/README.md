@@ -1,7 +1,8 @@
-# IIDR-Masker
-Demonstrate basic masking/hashing and type conversion capabilities for IBM Change Data Capture.
+# IIDR-Masker (groovy-masker)
+Support building column transformations in Groovy language for IBM Change Data Capture.
 
-Precompiled classes are available in the `bin` directory.
+Precompiled class is available in the `bin` directory.
+It depends on `groovy-2.5.8.jar` library, which should be put into `{cdc-install-dir}/lib` and registered in `{cdc-install-dir}/instance/{instance-name}/conf/user.cp` file (as `lib/groovy-2.5.8.jar`). 
 
 To build with Maven, first take ts.jar from your CDC agent installation
 and add it as a local Maven artifact as the following:
@@ -17,26 +18,5 @@ Another option would be putting the `*.java` files to the `{cdc-install-dir}/lib
 and building directly with javac, for example:
 
 ```bash
-javac CdcHasher.java -classpath ts.jar
-javac CdcBin2Str.java -classpath ts.jar
-```
-
-After that, CDC will be able to calculate the derived columns in the following syntax:
-```
-%USERFUNC("JAVA","CdcHasher", "SHA-1", PAN, "passw0rd")
-```
-
-Here `PAN` is the name of the source column for hash compuation, and `"SHA-1"`
-is the hash type.
-
-The supported hash algorithms are listed here, for "MessageDigest" type of algorithms:
-https://www.ibm.com/support/knowledgecenter/en/SSYKE2_8.0.0/com.ibm.java.security.component.80.doc/security-component/pkcs11implDocs/supportedalgorithms.html
-
-`CdcBin2Str` allows to convert source binary (and even character) values
-to hexadecimal or base64 textual representations, with the following syntax:
-
-```
-%USERFUNC("JAVA","CdcBin2Str", uuid)        -- hex conversion
-%USERFUNC("JAVA","CdcBin2Str", uuid, 0)     -- hex conversion
-%USERFUNC("JAVA","CdcBin2Str", uuid, 1)     -- base64 conversion
+javac CdcGroovy.java -classpath ts.jar:groovy-2.5.8.jar
 ```
