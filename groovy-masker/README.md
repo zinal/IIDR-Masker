@@ -2,7 +2,7 @@
 Support building column transformations in Groovy language for IBM Change Data Capture.
 
 Precompiled class is available in the `bin` directory.
-It depends on `groovy-2.5.8.jar` library, which should be put into `{cdc-install-dir}/lib` and registered in `{cdc-install-dir}/instance/{instance-name}/conf/user.cp` file (as `lib/groovy-2.5.8.jar`). 
+It depends on `groovy-2.5.10.jar` library, which should be put into `{cdc-install-dir}/lib` and registered in `{cdc-install-dir}/instance/{instance-name}/conf/user.cp` file (as `lib/groovy-2.5.10.jar`). 
 
 To build with Maven, first take ts.jar from your CDC agent installation
 and add it as a local Maven artifact as the following:
@@ -18,5 +18,26 @@ Another option would be putting the `*.java` files to the `{cdc-install-dir}/lib
 and building directly with javac, for example:
 
 ```bash
-javac CdcGroovy.java -classpath ts.jar:groovy-2.5.8.jar
+javac CdcGroovy.java -classpath ts.jar:groovy-2.5.10.jar
+```
+
+Groovy scripts should go to `{user.home}/cdcgroovy`, into files with names `{script-name}.groovy`.
+They can be referenced in the derived expressions with the following syntax:
+```
+%USERFUNC("JAVA","CdcGroovy","script-name", COLUMN1, COLUMN2, ...)
+```
+
+Each Groovy script should implement the `invoke()` function with at least one argument (script name).
+The number and data types of arguments should correspond to the number and data types of columns.
+Multiple `invoke()` implementations can be provided in a single Groovy script file to support different number and types of arguments.
+Variadic `invoke()` implementations are also supported.
+
+Example of simple Groovy script calculating an SHA-1 hash:
+
+```Groovy
+def invoke(String scriptName, Object value) {
+   if (value == null)
+     return null;
+   return "sha1:" + value.toString().digest("SHA-1");
+}
 ```
