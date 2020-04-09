@@ -10,11 +10,11 @@ import java.util.Map;
  * This code is provided "as is", without warranty of any kind.
  * 
  * Put the CdcGroovy.class into {cdc-install-dir}/lib.
- * Copy groovy-2.5.8.jar to the same directory.
+ * Copy groovy-2.5.10.jar to the same directory.
  * Create file system.cp in instance/INAME/conf directory, with:
- *    lib/groovy-2.5.8.jar
+ *    lib/groovy-2.5.10.jar
  * 
- * javac CdcGroovy.java -classpath ts.jar:groovy-2.5.8.jar
+ * javac CdcGroovy.java -classpath ts.jar:groovy-2.5.10.jar
  * 
  * %USERFUNC("JAVA","CdcGroovy","script-name", COLUMN)
  */
