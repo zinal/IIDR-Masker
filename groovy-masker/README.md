@@ -1,7 +1,8 @@
 # IIDR-Masker (groovy-masker)
 Support building column transformations in Groovy language for IBM Change Data Capture.
 
-Precompiled class is available in the `bin` directory.
+Precompiled class file (ready for installation) `CdcGroovy.class` is available in the `bin` directory.
+Installation is performed by placing the `CdcGroovy.class` into `{cdc-install-dir}/lib`.
 It depends on `groovy-2.5.10.jar` library, which should be put into `{cdc-install-dir}/lib` and registered in `{cdc-install-dir}/instance/{instance-name}/conf/user.cp` file (as `lib/groovy-2.5.10.jar`). 
 
 To build with Maven, first take ts.jar from your CDC agent installation
@@ -14,7 +15,7 @@ mvn install:install-file -Dfile=`pwd`/ts.jar \
 
 After that pom.xml can be used for building and/or opening the project in Java IDE.
 
-Another option would be putting the `*.java` files to the `{cdc-install-dir}/lib`
+Another option would be putting the `CdcGroovy.java` file to the `{cdc-install-dir}/lib`
 and building directly with javac, for example:
 
 ```bash
