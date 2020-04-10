@@ -3,7 +3,8 @@ Support building column transformations in Groovy language for IBM Change Data C
 
 Precompiled class file (ready for installation) `CdcGroovy.class` is available in the `bin` directory.
 Installation is performed by placing the `CdcGroovy.class` into `{cdc-install-dir}/lib`.
-It depends on [groovy-2.5.10.jar](https://dl.bintray.com/groovy/maven/apache-groovy-binary-2.5.10.zip) library, which should be put into `{cdc-install-dir}/lib` and registered in `{cdc-install-dir}/instance/{instance-name}/conf/user.cp` file (as `lib/groovy-2.5.10.jar`). 
+It depends on `groovy-2.5.10.jar`, which can be downloaded as part of a [Groovy distribution](https://dl.bintray.com/groovy/maven/apache-groovy-binary-2.5.10.zip).
+The library should be put into `{cdc-install-dir}/lib` and registered in `{cdc-install-dir}/instance/{instance-name}/conf/user.cp` file (as `lib/groovy-2.5.10.jar` entry). 
 
 The compiled code is installed either on the source IBM CDC agent, in case when derived columns are used, or on the target agent, in case when the derived expressions are directly mapped to the target columns.
 
