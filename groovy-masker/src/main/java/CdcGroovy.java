@@ -21,15 +21,26 @@ import java.util.Map;
 public class CdcGroovy implements DEUserExitIF {
 
     public static final String VERSION = 
-            "CdcGroovy 1.1 2020-04-10";
+            "CdcGroovy 1.2 2020-04-28";
 
     private final String instanceId = Integer.toHexString(
             System.identityHashCode(this));
-    private final File scriptHome = 
-            new File(System.getProperty("user.home"), "cdcgroovy");
+    private final File scriptHome;
     // Ugly data structure to avoid the need to have multiple class files
     private final Map<String, Object[]> scripts = new HashMap<>();
     private GroovyShell groovyShell = null;
+    
+    public CdcGroovy() {
+        String scriptHomeVal = System.getProperty("cdcgroovy.de.path");
+        if (scriptHomeVal==null || scriptHomeVal.trim().length()==0) {
+            scriptHome = new File(System.getProperty("user.home"), "cdcgroovy");
+        } else {
+            scriptHome = new File(scriptHomeVal);
+        }
+        // Trace version and script directory on load
+        System.out.println(VERSION + ", scripts path: " + scriptHome.getPath()
+            + (scriptHome.isDirectory() ? " (available)" : "(UNAVAILABLE)"));
+    }
     
     /**
      * Load and call the Groovy script with the specified arguments.
