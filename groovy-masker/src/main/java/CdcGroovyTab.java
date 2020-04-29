@@ -1,4 +1,4 @@
-import com.datamirror.ts.derivedexpressionmanager.*;
+import com.datamirror.ts.target.publication.userexit.*;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import java.io.File;
@@ -9,26 +9,25 @@ import java.util.Map;
  * Groovy dynamic scripting for IBM CDC.
  * This code is provided "as is", without warranty of any kind.
  * 
- * Put the CdcGroovy.class into {cdc-install-dir}/lib.
+ * Put the CdcGroovyTab.class into {cdc-install-dir}/lib.
  * Copy groovy-2.5.10.jar to the same directory.
  * Create file system.cp in instance/INAME/conf directory, with:
  *    lib/groovy-2.5.10.jar
  * 
- * javac CdcGroovy.java -classpath ts.jar:groovy-2.5.10.jar
+ * javac CdcGroovyTab.java -classpath ts.jar:groovy-2.5.10.jar
  * 
- * %USERFUNC("JAVA","CdcGroovy","script-name", COLUMN)
  */
-public class CdcGroovy implements DEUserExitIF {
+public class CdcGroovyTab implements UserExitIF {
 
     public static final String VERSION = 
-            "CdcGroovy 1.2 2020-04-28";
+            "CdcGroovyTab 0.1 2020-04-28";
 
     private final File scriptHome;
     // Ugly data structure to avoid the need to have multiple class files
     private final Map<String, Object[]> scripts = new HashMap<>();
     private GroovyShell groovyShell = null;
     
-    public CdcGroovy() {
+    public CdcGroovyTab() {
         String scriptHomeVal = System.getProperty("cdcgroovy.de.path");
         if (scriptHomeVal==null || scriptHomeVal.trim().length()==0) {
             scriptHome = new File(System.getProperty("user.home"), "cdcgroovy");
@@ -39,41 +38,20 @@ public class CdcGroovy implements DEUserExitIF {
         System.out.println(VERSION + ", scripts path: " + scriptHome.getPath()
             + (scriptHome.isDirectory() ? " (available)" : "(UNAVAILABLE)"));
     }
-    
-    /**
-     * Load and call the Groovy script with the specified arguments.
-     * 
-     * @param args Object[]
-     * @return String as Object
-     * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvalidArgumentException
-     * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvokeException
-     */
+
     @Override
-    public Object invoke(Object[] args) 
-            throws UserExitInvalidArgumentException, UserExitInvokeException {
-        // At least one argument is expected - it is the script name
-        if (args.length < 1) {
-            throw new UserExitInvalidArgumentException(getClass().getName() 
-                    + ": insufficient number of arguments, "
-                    + "expects a script name");
-        }
-        // Check we actually got a script name
-        if (!(args[0] instanceof String)) {
-            throw new UserExitInvalidArgumentException(getClass().getName() 
-                    + ": The script name must be String");
-        }
-        String scriptName = (String) args[0];
-        try {
-            // Load script (or locate it in the cache)
-            Script script = locateScript(scriptName);
-            if (script==null)
-                throw new Exception("Script not found: " + scriptName);
-            // Call the "invoke" method, passing our arguments
-            return script.invokeMethod("invoke", args);
-        } catch(Exception ex) {
-            // Convert the original exception to a debugging message
-            throw new UserExitInvokeException(buildMessage(ex));
-        }
+    public void init(ReplicationEventPublisherIF repif) throws UserExitException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean processReplicationEvent(ReplicationEventIF reif) throws UserExitException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void finish() throws UserExitException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     /**
@@ -148,9 +126,6 @@ public class CdcGroovy implements DEUserExitIF {
             groovyShell = new GroovyShell();
         long stamp = f.lastModified();
         Script script = groovyShell.parse(f);
-//        System.out.println(" ** " 
-//                + Integer.toHexString(System.identityHashCode(this)) 
-//                + " loaded " + f.getAbsolutePath());
         return new Object[] { script, stamp, System.currentTimeMillis() };
     }
     
