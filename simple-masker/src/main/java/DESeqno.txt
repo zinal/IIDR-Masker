@@ -1,0 +1,8 @@
+DESeqno.class will return a 13 byte character string which can be used to populate a CHAR(13) FOR BIT column
+or a CHAR(13) variant (VARCHAR,etc)
+
+To use it:
+
+1)	Copy DESeqno.class to the /lib folder of the CDC install directory.
+2)	Map your target column to a user exit using %USERFUNC("JAVA","DESeqno",null)
+	
