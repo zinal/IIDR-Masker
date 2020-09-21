@@ -7,9 +7,8 @@ import com.datamirror.ts.derivedexpressionmanager.*;
  */
 public class DENow implements DEUserExitIF {
 
-    public DENow() {
-
-    }
+    public static final String VERSION =
+        "DENow 1.0 2020-09-21";
 
     @Override
     public Object invoke(Object[] aobjList)
