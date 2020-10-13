@@ -23,34 +23,41 @@
  **************************************************************************** */
 
 import com.datamirror.ts.derivedexpressionmanager.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
- * DEUserExitSample is an implementation of the UserExitIF
+ * %USERFUNC("JAVA","DESeqno",null).
  */
 public class DESeqno implements DEUserExitIF {
 
     public static final String VERSION =
-        "DESeqno 1.0 2020-09-21";
+        "DESeqno v1.1 2020-10-13.C mzinal";
 
-    private long seqno = 0;
+    private final static long LOAD_TIME = System.currentTimeMillis();
+    private final static AtomicLong COUNTER = new AtomicLong();
+
+    public DESeqno() {
+    }
 
     /**
      * Does not require any arguments.
      * Returns the incremental counter.
      *
      * @param aobjList Object[]
-     * @return Integer as Object
+     * @return long converted to String as Object
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvalidArgumentException
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvokeException
      */
     @Override
     public Object invoke(Object[] aobjList)
             throws UserExitInvalidArgumentException, UserExitInvokeException {
-        if (seqno < 1L) {
-            // First time call - initialize the counter
-            seqno = System.currentTimeMillis();
-        }
-        return Long.toString(++seqno);
+        final long seqno = LOAD_TIME + COUNTER.incrementAndGet();
+        /*
+        System.out.println("DESeqno T" + String.valueOf(Thread.currentThread().getId())
+                + " O" + System.identityHashCode(this)
+                + " NEXT " + Long.toString(seqno));
+        */
+        return Long.toString(seqno);
     }
+
 }
