@@ -1,8 +1,21 @@
-DESeqno.class will return a 13 byte character string which can be used to populate a CHAR(13) FOR BIT column
-or a CHAR(13) variant (VARCHAR,etc)
+This is a modified version of DESeqno, originally published as
+"Derived Sequence User Exit Sample".
+The original version should NOT be used in audit mode table mappings,
+as it sometimes provides inconsistent results.
+
+DESeqno.class will return a 13 byte character string
+which can be used to populate a CHAR(13) FOR BIT column
+or a CHAR(13) variant (VARCHAR,etc).
+
+These values should only be used to order the operations
+inside a single transaction (e.g. entries having the same
+&CCID values). The value ranges:
+ - CAN and WILL OVERLAP between CDC agent startups;
+ - CANNOT be compared in a meaningful way for the records
+   corresponding to different transactions.
 
 To use it:
 
 1)	Copy DESeqno.class to the /lib folder of the CDC install directory.
 2)	Map your target column to a user exit using %USERFUNC("JAVA","DESeqno",null)
-	
+
