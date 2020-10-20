@@ -1,40 +1,62 @@
+
+/** **************************************************************************
+ ** Licensed Materials - Property of IBM
+ ** IBM InfoSphere Change Data Capture
+ ** 5724-U70
+ **
+ ** (c) Copyright IBM Corp. 2011 All rights reserved.
+ **
+ ** The following sample of source code ("Sample") is owned by International
+ ** Business Machines Corporation or one of its subsidiaries ("IBM") and is
+ ** copyrighted and licensed, not sold. You may use, copy, modify, and
+ ** distribute the Sample in any form without payment to IBM.
+ **
+ ** The Sample code is provided to you on an "AS IS" basis, without warranty of
+ ** any kind. IBM HEREBY EXPRESSLY DISCLAIMS ALL WARRANTIES, EITHER EXPRESS OR
+ ** IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ ** MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Some jurisdictions do
+ ** not allow for the exclusion or limitation of implied warranties, so the above
+ ** limitations or exclusions may not apply to you. IBM shall not be liable for
+ ** any damages you suffer as a result of using, copying, modifying or
+ ** distributing the Sample, even if IBM has been advised of the possibility of
+ ** such damages.
+ **************************************************************************** */
+
 import com.datamirror.ts.derivedexpressionmanager.*;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import javax.xml.bind.DatatypeConverter;
 
 /**
  * Convert binary values to strings for IBM CDC.
  * This code is provided "as is", without warranty of any kind.
- * 
+ *
  * Put the CdcBin2Str.class into {cdc-install-dir}/lib
- * 
+ *
  * javac CdcBin2Str.java -classpath ts.jar
- * 
+ *
  * %USERFUNC("JAVA","CdcBin2Str", uuid)        -- hex conversion
  * %USERFUNC("JAVA","CdcBin2Str", uuid, 0)     -- hex conversion
  * %USERFUNC("JAVA","CdcBin2Str", uuid, 1)     -- base64 conversion
  */
 public class CdcBin2Str implements DEUserExitIF {
 
-    public static final String VERSION = 
-            "CdcBin2Str 1.0 2020-03-06";
-
-    private static final Charset CS = Charset.forName("UTF-8");
+    public static final String VERSION =
+            "CdcBin2Str 1.1 2020-10-20";
 
     /**
      * Perform the conversion
-     * 
+     *
      * @param args Object[]
      * @return String as Object
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvalidArgumentException
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvokeException
      */
     @Override
-    public Object invoke(Object[] args) 
+    public Object invoke(Object[] args)
             throws UserExitInvalidArgumentException, UserExitInvokeException {
         // 1 argument expected - the value to be converted
         if (args.length < 1) {
-            throw new UserExitInvalidArgumentException(getClass().getName() 
+            throw new UserExitInvalidArgumentException(getClass().getName()
                     + ": insufficient number of arguments, "
                     + "expects a value to be converted");
         }
@@ -65,14 +87,14 @@ public class CdcBin2Str implements DEUserExitIF {
         if (src instanceof byte[]) {
             value = (byte[]) src;
         } else {
-            value = src.toString().getBytes(CS);
+            value = src.toString().getBytes(StandardCharsets.UTF_8);
         }
         if (useBase64) {
             // More compact base64 encoding
             return DatatypeConverter.printBase64Binary(value);
         } else {
             // HEX encoding
-            final StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder(value.length * 2);
             for (byte b : value) {
                 sb.append(String.format("%02x", b & 0xff));
             }
