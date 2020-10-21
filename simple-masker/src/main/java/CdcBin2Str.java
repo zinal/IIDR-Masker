@@ -41,7 +41,7 @@ import javax.xml.bind.DatatypeConverter;
 public class CdcBin2Str implements DEUserExitIF {
 
     public static final String VERSION =
-            "CdcBin2Str 1.1 2020-10-20";
+            "CdcBin2Str 1.2 2020-10-21";
 
     /**
      * Perform the conversion
@@ -94,11 +94,22 @@ public class CdcBin2Str implements DEUserExitIF {
             return DatatypeConverter.printBase64Binary(value);
         } else {
             // HEX encoding
-            final StringBuilder sb = new StringBuilder(value.length * 2);
-            for (byte b : value) {
-                sb.append(String.format("%02x", b & 0xff));
-            }
-            return sb.toString();
+            return printHex(value);
         }
     }
+
+   private static final char[] DIGITS =
+        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    protected static String printHex(final byte[] data) {
+        final int l = data.length;
+        final char[] out = new char[l << 1];
+        // two characters form the hex value.
+        for (int i = 0, j = 0; i < l; i++) {
+            out[j++] = DIGITS[(0xf0 & data[i]) >>> 4];
+            out[j++] = DIGITS[0x0f & data[i]];
+        }
+        return new String(out);
+    }
+
 }
