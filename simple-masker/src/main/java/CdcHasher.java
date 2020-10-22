@@ -74,14 +74,14 @@ public class CdcHasher implements DEUserExitIF {
         }
         final String algo = (String) args[0];
         // Value to hash
-        byte[] value;
-        final Object src = args[1];
-        if (src==null) {
-            value = new byte[0];
-        } else if (src instanceof byte[]) {
-            value = (byte[]) src;
+        final byte[] sourceValue;
+        final Object sourceObject = args[1];
+        if (sourceObject==null) {
+            sourceValue = new byte[0];
+        } else if (sourceObject instanceof byte[]) {
+            sourceValue = (byte[]) sourceObject;
         } else {
-            value = src.toString().getBytes(StandardCharsets.UTF_8);
+            sourceValue = sourceObject.toString().getBytes(StandardCharsets.UTF_8);
         }
         // Output type
         final boolean useBase64 = (args.length > 2) && parseFlag(args[2]);
@@ -93,7 +93,7 @@ public class CdcHasher implements DEUserExitIF {
             } else {
                 mdVal.reset();
             }
-            final byte[] hashValue = mdVal.digest(value);
+            final byte[] hashValue = mdVal.digest(sourceValue);
             if (useBase64) {
                 // More compact base64 encoding
                 return DatatypeConverter.printBase64Binary(hashValue);
@@ -110,7 +110,7 @@ public class CdcHasher implements DEUserExitIF {
     private static final char[] DIGITS
             = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-    protected static String printHex(final byte[] data) {
+    private static String printHex(final byte[] data) {
         final int l = data.length;
         final char[] out = new char[l << 1];
         // two characters form the hex value.
@@ -121,7 +121,7 @@ public class CdcHasher implements DEUserExitIF {
         return new String(out);
     }
 
-    protected static boolean parseFlag(Object flag) {
+    private static boolean parseFlag(Object flag) {
         if (flag instanceof Number) {
             Number n = (Number) flag;
             if (n.intValue() != 0)
