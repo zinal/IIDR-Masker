@@ -19,7 +19,7 @@ public class CdcBin2StrTest {
     public void testOne() throws Exception {
         DEUserExitIF x = (DEUserExitIF) Class.forName("CdcBin2Str").newInstance();
         for ( int i=0; i<1000; ++i) {
-            byte[] input = ("служилГаврилаПрограммистом#" + String.valueOf(i))
+            byte[] input = ("изПодПераЕгоСоСвистом#" + String.valueOf(i))
                     .getBytes(StandardCharsets.UTF_8);
             Object output = x.invoke(new Object[] {input});
             Assert.assertNotNull(output);
@@ -27,6 +27,20 @@ public class CdcBin2StrTest {
             Assert.assertEquals(output.toString().length(), 2 * input.length);
             Assert.assertEquals(output.toString().toLowerCase(),
                     DatatypeConverter.printHexBinary(input).toLowerCase());
+        }
+    }
+
+    @Test
+    public void testTwo() throws Exception {
+        DEUserExitIF x = (DEUserExitIF) Class.forName("CdcBin2Str").newInstance();
+        for ( int i=0; i<1000; ++i) {
+            byte[] input = ("программныйМодульВылетал#" + String.valueOf(i))
+                    .getBytes(StandardCharsets.UTF_8);
+            Object output = x.invoke(new Object[] {input, 1});
+            Assert.assertNotNull(output);
+            Assert.assertEquals(output.getClass(), String.class);
+            Assert.assertEquals(output.toString(),
+                    DatatypeConverter.printBase64Binary(input));
         }
     }
 
