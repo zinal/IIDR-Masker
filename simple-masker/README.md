@@ -50,5 +50,4 @@ to hexadecimal or base64 textual representations, with the following syntax:
 %USERFUNC("JAVA","CdcBin2Str", uuid, 1)     -- base64 conversion
 ```
 
-## Additional usage notes
 Non-binary data will be first converted to text (no-op for already character data on input), then this text will be converted to binary (with UTF-8 encoding), and then hex or base-64 encoded.
