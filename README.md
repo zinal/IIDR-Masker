@@ -1,5 +1,5 @@
 # IIDR-Masker
-Demonstrate basic masking/hashing capabilities for IBM Change Data Capture
+Demonstrate basic masking/hashing and other custom transformation capabilities for IBM Change Data Capture
 
 `simple-masker` subdirectory contains:
 * `CdcHasher` - compute SHA-1 or MD-5 hashes on the input values;
