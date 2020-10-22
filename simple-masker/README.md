@@ -21,16 +21,25 @@ javac CdcHasher.java -classpath ts.jar
 javac CdcBin2Str.java -classpath ts.jar
 ```
 
-After that, CDC will be able to calculate the derived columns in the following syntax:
+## CdcHasher usage
+
+CdcHasher is able to compute hashes on its input in the following syntax:
 ```
-%USERFUNC("JAVA","CdcHasher", "SHA-1", PAN, "passw0rd")
+%USERFUNC("JAVA","CdcHasher", "SHA-1", PAN)
+%USERFUNC("JAVA","CdcHasher", "SHA-1", PAN, 0)
+%USERFUNC("JAVA","CdcHasher", "SHA-1", PAN, 1)
 ```
 
 Here `PAN` is the name of the source column for hash compuation, and `"SHA-1"`
 is the hash type.
 
+The optional third argument, if set to non-zero value, allows to specify Base64
+output format (which saves some bytes) instead of the default Hex format.
+
 The supported hash algorithms are listed here, for "MessageDigest" type of algorithms:
 https://www.ibm.com/support/knowledgecenter/en/SSYKE2_8.0.0/com.ibm.java.security.component.80.doc/security-component/pkcs11implDocs/supportedalgorithms.html
+
+## CdcBin2Str usage
 
 `CdcBin2Str` allows to convert source binary (and even character) values
 to hexadecimal or base64 textual representations, with the following syntax:
@@ -41,4 +50,5 @@ to hexadecimal or base64 textual representations, with the following syntax:
 %USERFUNC("JAVA","CdcBin2Str", uuid, 1)     -- base64 conversion
 ```
 
+## Additional usage notes
 Non-binary data will be first converted to text (no-op for already character data on input), then this text will be converted to binary (with UTF-8 encoding), and then hex or base-64 encoded.
