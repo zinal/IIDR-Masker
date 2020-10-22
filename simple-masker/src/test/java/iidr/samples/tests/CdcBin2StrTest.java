@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package iidr.samples.tests;
 
 import com.datamirror.ts.derivedexpressionmanager.DEUserExitIF;
@@ -22,8 +17,8 @@ public class CdcBin2StrTest {
     public void testOne() throws Exception {
         DEUserExitIF x = (DEUserExitIF) Class.forName("CdcBin2Str").newInstance();
         long tvStart = System.currentTimeMillis();
-        for ( int i=0; i<100; ++i) {
-            byte[] input = ("служилГаврилаБарахлистом" + String.valueOf(i))
+        for ( int i=0; i<1000; ++i) {
+            byte[] input = ("служилГаврилаПрограммистом#" + String.valueOf(i))
                     .getBytes(StandardCharsets.UTF_8);
             x.invoke(new Object[] {input});
         }

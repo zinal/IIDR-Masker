@@ -1,10 +1,9 @@
-
 /** **************************************************************************
  ** Licensed Materials - Property of IBM
  ** IBM InfoSphere Change Data Capture
  ** 5724-U70
  **
- ** (c) Copyright IBM Corp. 2011 All rights reserved.
+ ** (c) Copyright IBM Corp. 2020 All rights reserved.
  **
  ** The following sample of source code ("Sample") is owned by International
  ** Business Machines Corporation or one of its subsidiaries ("IBM") and is
@@ -40,8 +39,8 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class CdcBin2Str implements DEUserExitIF {
 
-    public static final String VERSION =
-            "CdcBin2Str 1.2 2020-10-21";
+    public static final String VERSION
+            = "CdcBin2Str 1.3 2020-10-22";
 
     /**
      * Perform the conversion
@@ -62,46 +61,30 @@ public class CdcBin2Str implements DEUserExitIF {
         }
         // Handle null input values
         final Object src = args[0];
-        if ( src == null )
+        if (src == null)
             return null;
-        // Algorithm type
-        boolean useBase64 = false;
-        if (args.length > 1) {
-            final Object flag = args[1];
-            if (flag instanceof Number) {
-                Number n = (Number) flag;
-                if (n.intValue() != 0)
-                    useBase64 = true;
-            } else if (flag instanceof String) {
-                String s = flag.toString().trim();
-                if (s.length() > 0) {
-                    switch(s.charAt(0)) {
-                        case '1': case 'y': case 'Y': case 't': case 'T':
-                            useBase64 = true;
-                            break;
-                    }
-                }
-            }
-        }
+        // Value to process
         byte[] value;
         if (src instanceof byte[]) {
             value = (byte[]) src;
         } else {
             value = src.toString().getBytes(StandardCharsets.UTF_8);
         }
+        // Output type
+        final boolean useBase64 = (args.length > 1) && parseFlag(args[1]);
         if (useBase64) {
             // More compact base64 encoding
             return DatatypeConverter.printBase64Binary(value);
         } else {
-            // HEX encoding
+            // Hex encoding
             return printHex(value);
         }
     }
 
-   private static final char[] DIGITS =
-        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    private static final char[] DIGITS
+            = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-    protected static String printHex(final byte[] data) {
+    private static String printHex(final byte[] data) {
         final int l = data.length;
         final char[] out = new char[l << 1];
         // two characters form the hex value.
@@ -110,6 +93,23 @@ public class CdcBin2Str implements DEUserExitIF {
             out[j++] = DIGITS[0x0f & data[i]];
         }
         return new String(out);
+    }
+
+    private static boolean parseFlag(Object flag) {
+        if (flag instanceof Number) {
+            Number n = (Number) flag;
+            if (n.intValue() != 0)
+                return true;
+        } else if (flag instanceof String) {
+            String s = flag.toString().trim();
+            if (s.length() > 0) {
+                switch (s.charAt(0)) {
+                    case '1': case 'y': case 'Y': case 't': case 'T':
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
 }
