@@ -27,9 +27,10 @@ import java.util.Properties;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.io.PrintWriter;
-import com.datamirror.ts.target.publication.userexit.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import javax.xml.bind.DatatypeConverter;
+import com.datamirror.ts.target.publication.userexit.*;
 
 /**
  * Logger for DDL operations.
@@ -37,6 +38,9 @@ import java.security.MessageDigest;
  * (currently available for Oracle Database and IBM Db2 sources).
  */
 public class CdcDdlLogger implements SubscriptionUserExitIF {
+
+    public static final String VERSION
+            = "CdcDdlLogger 1.0 2020-11-11.A";
 
     public final String DUMMY_SQL = "SELECT 'A' FROM DUAL";
     public final String PROP_OUT_DIR = "output.dir";
@@ -111,6 +115,7 @@ public class CdcDdlLogger implements SubscriptionUserExitIF {
 
     private void processStatement(Timestamp timestamp,
             String tableName, String schemaName, String ddl) throws UserExitException {
+        // Generating new file name
         String nameBase = "ddl-" + Long.toHexString(timestamp.getTime())
                 + "-" + schemaName + "." + tableName + "-";
         File f;
@@ -122,9 +127,18 @@ public class CdcDdlLogger implements SubscriptionUserExitIF {
             ++counter;
         }
 
-        byte[] ddlBytes = ddl.getBytes(StandardCharsets.UTF_8);
-        String ddlDigest = printHex(digest.digest(ddlBytes));
+        // Dropping trail zeroes from SQL statement
+        int newLen = ddl.length();
+        while ( (newLen > 0)
+                && ddl.charAt(newLen - 1) == 0 )
+            --newLen;
+        ddl = ddl.substring(0, newLen);
 
+        // Compute binary length and digest
+        byte[] ddlBytes = ddl.getBytes(StandardCharsets.UTF_8);
+        String ddlDigest = DatatypeConverter.printBase64Binary(digest.digest(ddlBytes));
+
+        // Write the data to file
         try (PrintWriter pw = new PrintWriter(f, "UTF-8")) {
             pw.println("TYPE: DDL-EVENT");
             pw.format("SOURCE: %s", sourceSystemId); pw.println();
@@ -143,7 +157,7 @@ public class CdcDdlLogger implements SubscriptionUserExitIF {
 
     @Override
     public void finish() {
-
+        /* noop */
     }
 
     /**
@@ -169,29 +183,6 @@ public class CdcDdlLogger implements SubscriptionUserExitIF {
             ex = ex.getCause();
         }
         return sb.toString();
-    }
-
-    private static final char[] DIGITS
-            = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-    /**
-     * Fast method to convert byte array to its hex representation.
-     * @param data Input byte array
-     * @return String with hex-formatted data
-     */
-    public static String printHex(final byte[] data) {
-        if (data==null)
-            return null;
-        if (data.length==0)
-            return "";
-        final int l = data.length;
-        final char[] out = new char[l << 1];
-        // two characters form the hex value.
-        for (int i = 0, j = 0; i < l; i++) {
-            out[j++] = DIGITS[(0xf0 & data[i]) >>> 4];
-            out[j++] = DIGITS[0x0f & data[i]];
-        }
-        return new String(out);
     }
 
 }
