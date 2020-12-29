@@ -37,7 +37,7 @@ import com.datamirror.ts.derivedexpressionmanager.*;
 public class CdcMod implements DEUserExitIF {
 
     public static final String VERSION =
-            "CdcMod 1.0 2020-12-29.A";
+            "CdcMod 1.0 2020-12-29.B";
 
     /**
      * Computes the integer division remainder
@@ -54,13 +54,12 @@ public class CdcMod implements DEUserExitIF {
             throw new UserExitInvalidArgumentException(getClass().getName()
                     + ": expects two arguments on input");
         }
-        // Handle null input values
-        if ( args[1] == null )
-            return null;
         // Perform the conversion
         try {
             final Number val1 = toNumber(args[0]);
             final Number val2 = toNumber(args[1]);
+            if (val1==null || val2==null)
+                return null;
             return val1.longValue() % val2.longValue();
         } catch(Exception ex) {
             throw new UserExitInvokeException(getClass().getName()

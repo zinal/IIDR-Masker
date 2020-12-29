@@ -37,13 +37,13 @@ import java.math.BigDecimal;
 public class CdcNum2Long implements DEUserExitIF {
 
     public static final String VERSION =
-            "CdcNum2Long 1.1 2020-04-21.A";
+            "CdcNum2Long 1.2 2020-12-29.A";
 
     /**
      * Converts the input valus to 64-bit integers
      *
      * @param args Object[]
-     * @return String as Object
+     * @return Long as Object
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvalidArgumentException
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvokeException
      */
@@ -55,7 +55,7 @@ public class CdcNum2Long implements DEUserExitIF {
                     + ": expects a single argument on input");
         }
         // Handle null input values
-        if ( args[1] == null )
+        if ( args[0] == null )
             return null;
         // Perform the conversion
         try {
