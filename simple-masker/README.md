@@ -8,7 +8,7 @@ and add it as a local Maven artifact as the following:
 
 ```bash
 mvn install:install-file -Dfile=`pwd`/ts.jar \
-  -DgroupId=com.ibm.iidr -DartifactId=ts -Dversion=11.4.0.2.10686 -Dpackaging=jar
+  -DgroupId=com.ibm.iidr -DartifactId=ts -Dversion=11.4.0.3.5574 -Dpackaging=jar
 ```
 
 After that pom.xml can be used for building and/or opening the project in Java IDE.
