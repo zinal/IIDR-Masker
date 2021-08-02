@@ -1,5 +1,6 @@
 import com.datamirror.ts.derivedexpressionmanager.*;
 import groovy.lang.GroovyShell;
+import groovy.lang.MetaMethod;
 import groovy.lang.Script;
 import java.io.File;
 import java.util.HashMap;
@@ -8,20 +9,20 @@ import java.util.Map;
 /**
  * Groovy dynamic scripting for IBM CDC.
  * This code is provided "as is", without warranty of any kind.
- * 
+ *
  * Put the CdcGroovy.class into {cdc-install-dir}/lib.
  * Copy groovy-2.5.10.jar to the same directory.
  * Create file system.cp in instance/INAME/conf directory, with:
  *    lib/groovy-2.5.10.jar
- * 
+ *
  * javac CdcGroovy.java -classpath ts.jar:groovy-2.5.10.jar
- * 
+ *
  * %USERFUNC("JAVA","CdcGroovy","script-name", COLUMN)
  */
 public class CdcGroovy implements DEUserExitIF {
 
-    public static final String VERSION = 
-            "CdcGroovy 1.2 2020-04-28";
+    public static final String VERSION =
+            "CdcGroovy 1.3 2020-09-09";
 
     private final String instanceId = Integer.toHexString(
             System.identityHashCode(this));
@@ -29,7 +30,9 @@ public class CdcGroovy implements DEUserExitIF {
     // Ugly data structure to avoid the need to have multiple class files
     private final Map<String, Object[]> scripts = new HashMap<>();
     private GroovyShell groovyShell = null;
-    
+
+    public static final String INVOKE_NAME = "invoke";
+
     public CdcGroovy() {
         String scriptHomeVal = System.getProperty("cdcgroovy.de.path");
         if (scriptHomeVal==null || scriptHomeVal.trim().length()==0) {
@@ -41,52 +44,67 @@ public class CdcGroovy implements DEUserExitIF {
         System.out.println(VERSION + ", scripts path: " + scriptHome.getPath()
             + (scriptHome.isDirectory() ? " (available)" : "(UNAVAILABLE)"));
     }
-    
+
     /**
      * Load and call the Groovy script with the specified arguments.
-     * 
+     *
      * @param args Object[]
      * @return String as Object
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvalidArgumentException
      * @throws com.datamirror.ts.derivedexpressionmanager.UserExitInvokeException
      */
     @Override
-    public Object invoke(Object[] args) 
+    public Object invoke(Object[] args)
             throws UserExitInvalidArgumentException, UserExitInvokeException {
         // At least one argument is expected - it is the script name
         if (args.length < 1) {
-            throw new UserExitInvalidArgumentException(getClass().getName() 
+            throw new UserExitInvalidArgumentException(getClass().getName()
                     + ": insufficient number of arguments, "
                     + "expects a script name");
         }
         // Check we actually got a script name
         if (!(args[0] instanceof String)) {
-            throw new UserExitInvalidArgumentException(getClass().getName() 
+            throw new UserExitInvalidArgumentException(getClass().getName()
                     + ": The script name must be String");
         }
         String scriptName = (String) args[0];
         try {
             // Load script (or locate it in the cache)
-            Script script = locateScript(scriptName);
+            Object[] info = locateScript(scriptName);
+            Script script = getInfoScript(info);
             if (script==null)
                 throw new Exception("Script not found: " + scriptName);
-            // Call the "invoke" method, passing our arguments
-            return script.invokeMethod("invoke", args);
+            // Grab and check the method metadata
+            MetaMethod method = getMetaMethod(info);
+            if (method!=null) {
+                if (! method.isValidMethod(args))
+                    method = null;
+            }
+            if (method == null) {
+                method = script.getMetaClass().getMetaMethod(INVOKE_NAME, args);
+                updateMetaMethod(info, method);
+            }
+            if (method!=null) {
+                // Normal invocation through cached metadata
+                return method.invoke(script, args);
+            }
+            // The last resort - call the method directly
+            return script.invokeMethod(INVOKE_NAME, args);
         } catch(Exception ex) {
             // Convert the original exception to a debugging message
             throw new UserExitInvokeException(buildMessage(ex));
         }
     }
-    
+
     /**
      * Look up for the script with the specified name,
      * compile it if necessary (if it has not yet been loaded),
      * and return the compiled implementation.
      * @param name Script name
      * @return Compiled script, or null if script has not been found
-     * @throws Exception 
+     * @throws Exception
      */
-    private Script locateScript(String name) throws Exception {
+    private Object[] locateScript(String name) throws Exception {
         // This may not be necessary, but I was not able to find anywhere
         // if the invoke() method may or may not be called concurrently.
         synchronized(scripts) {
@@ -98,7 +116,7 @@ public class CdcGroovy implements DEUserExitIF {
                 // has been recently checked for changes.
                 final long curTv = System.currentTimeMillis();
                 if ( curTv - getInfoMark(info) < 2000L )
-                    return getInfoScript(info);
+                    return info;
                 // We now need to check whether the script has changed
                 updateInfoMark(info, curTv);
                 f = generateScriptFilename(name);
@@ -108,12 +126,12 @@ public class CdcGroovy implements DEUserExitIF {
                     if (stamp == getInfoStamp(info)) {
                         // Same timestamp as we have seen during load.
                         // We can return the already-cached version.
-                        return getInfoScript(info);
+                        return info;
                     }
                 } else {
                     // TODO: print warning about missing file.
                     // Still returning the already-cached version.
-                    return getInfoScript(info);
+                    return info;
                 }
             }
             if (f==null)
@@ -122,14 +140,14 @@ public class CdcGroovy implements DEUserExitIF {
                 // Load and cache the script
                 info = loadInfo(f);
                 scripts.put(name, info);
-                return getInfoScript(info);
+                return info;
             } else {
                 // No script available
                 return null;
             }
         }
     }
-    
+
     /**
      * Build the full script filename from the script name.
      * @param name Script name
@@ -138,7 +156,7 @@ public class CdcGroovy implements DEUserExitIF {
     private File generateScriptFilename(String name) {
         return new File(scriptHome, name + ".groovy");
     }
-    
+
     /**
      * Load the script from the specified file.
      * @param f File
@@ -152,23 +170,33 @@ public class CdcGroovy implements DEUserExitIF {
         Script script = groovyShell.parse(f);
         System.out.println(" ** " + instanceId +
                 " loaded " + f.getAbsolutePath());
-        return new Object[] { script, stamp, System.currentTimeMillis() };
+        return new Object[] { script, stamp, System.currentTimeMillis(), null };
     }
-    
+
     private static Script getInfoScript(Object[] info) {
+        if (info==null)
+            return null;
         return (Script) info[0];
     }
-    
+
     private static long getInfoStamp(Object[] info) {
         return (Long) info[1];
     }
-    
+
     private static long getInfoMark(Object[] info) {
         return (Long) info[2];
     }
 
     private static void updateInfoMark(Object[] info, long mark) {
         info[2] = mark;
+    }
+
+    private static MetaMethod getMetaMethod(Object[] info) {
+        return (MetaMethod) info[3];
+    }
+
+    private static void updateMetaMethod(Object[] info, MetaMethod mm) {
+        info[3] = mm;
     }
 
     /**
