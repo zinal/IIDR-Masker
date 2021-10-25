@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DESeqno implements DEUserExitIF {
 
     public static final String VERSION =
-        "DESeqno v1.1 2020-10-13.D mzinal";
+        "DESeqno v1.2 2021-10-25 mzinal";
 
     private final static long LOAD_TIME = System.currentTimeMillis();
     private final static AtomicLong COUNTER = new AtomicLong();

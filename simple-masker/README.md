@@ -1,5 +1,6 @@
 # IIDR-Masker (simple-masker)
-Demonstrate basic masking/hashing and type conversion capabilities for IBM Change Data Capture.
+Demonstrate basic masking/hashing and type conversion capabilities 
+for IBM Change Data Capture.
 
 Precompiled classes are available in the `bin` directory.
 
@@ -8,7 +9,7 @@ and add it as a local Maven artifact as the following:
 
 ```bash
 mvn install:install-file -Dfile=`pwd`/ts.jar \
-  -DgroupId=com.ibm.iidr -DartifactId=ts -Dversion=11.4.0.3.5574 -Dpackaging=jar
+  -DgroupId=com.ibm.iidr -DartifactId=ts -Dversion=11.4.0.4.5607 -Dpackaging=jar
 ```
 
 After that pom.xml can be used for building and/or opening the project in Java IDE.

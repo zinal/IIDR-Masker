@@ -21,7 +21,7 @@ import java.util.Map;
 public class CdcGroovy implements DEUserExitIF {
 
     public static final String VERSION = 
-            "CdcGroovy 1.2 2020-04-28";
+            "CdcGroovy 1.3 2021-10-25";
 
     private final String instanceId = Integer.toHexString(
             System.identityHashCode(this));
